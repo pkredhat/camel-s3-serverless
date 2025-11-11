@@ -1,0 +1,25 @@
+{{- if .Values.minio.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: minio-api
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/component: minio
+spec:
+  to:
+    kind: Service
+    name: minio
+  port:
+    targetPort: api
+  {{- if .Values.minio.route.apiHost }}
+  host: {{ .Values.minio.route.apiHost }}
+  {{- end }}
+  {{- with .Values.minio.route.tls.termination }}
+  tls:
+    termination: {{ . }}
+    {{- with $.Values.minio.route.tls.insecurePolicy }}
+    insecureEdgeTerminationPolicy: {{ . }}
+    {{- end }}
+  {{- end }}
+{{- end }}

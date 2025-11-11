@@ -1,0 +1,25 @@
+{{- if and .Values.kafkaUI.enabled .Values.kafkaUI.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: kafka-ui
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/component: kafka-ui
+spec:
+  to:
+    kind: Service
+    name: kafka-ui
+  port:
+    targetPort: http
+  {{- if .Values.kafkaUI.route.host }}
+  host: {{ .Values.kafkaUI.route.host }}
+  {{- end }}
+  {{- with .Values.kafkaUI.route.tls.termination }}
+  tls:
+    termination: {{ . }}
+    {{- with $.Values.kafkaUI.route.tls.insecurePolicy }}
+    insecureEdgeTerminationPolicy: {{ . }}
+    {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,6 +1,6 @@
 apiVersion: v2
-name: minio
-description: OpenShift resource deployment for the citizens-demo-camel-s3-serverless application
+name: citizens-demo-camel-s3-serverless
+description: Deploys the citizens-demo-camel-s3-serverless stack (Quarkus app, Kafka, MinIO, Kafka UI)
 type: application
 version: 0.1.0
 appVersion: "latest"

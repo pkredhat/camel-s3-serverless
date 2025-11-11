@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "citizens.fullname" . }}-zookeeper
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/component: zookeeper
+spec:
+  replicas: {{ .Values.zookeeper.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/component: zookeeper
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/component: zookeeper
+    spec:
+      containers:
+        - name: zookeeper
+          image: {{ .Values.zookeeper.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          env:
+            - name: ALLOW_ANONYMOUS_LOGIN
+              value: "yes"
+          ports:
+            - containerPort: {{ .Values.zookeeper.service.port }}
+              name: client
+          {{- with .Values.resources.zookeeper }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

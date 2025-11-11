@@ -1,54 +1,87 @@
-replicaCount: 1
+imagePullPolicy: IfNotPresent
 
-image:
-  repository: quay.io/minio/minio
-  tag: latest
-  pullPolicy: IfNotPresent
+global:
+  namespace: ""
+  clusterDomain: "apps"  # override if using custom domain
 
-minioArgs:
-  - server
-  - /data
-  - "--console-address"
-  - ":9001"
+quarkusApp:
+  image:
+    repository: image-registry.openshift-image-registry.svc:5000/camel-workshop/citizens-demo-camel-s3-serverless
+    tag: latest
+  replicaCount: 1
+  service:
+    port: 8080
+  route:
+    enabled: true
+    host: ""
+    tls:
+      termination: edge
+      insecurePolicy: Redirect
+  env:
+    kafkaBootstrap: "kafka:9092"
+    minioEndpoint: "http://minio:9000"
+    awsBucket: ""
+    awsRegion: "us-east-1"
+    awsAccessKeySecret: citizens-demo-aws
+    awsSecretKeySecret: citizens-demo-aws
+    minioCredsSecret: citizens-demo-minio
 
-env:
-  rootUser: admin
-  rootPassword: admin123
+zookeeper:
+  image: bitnami/zookeeper:latest
+  replicaCount: 1
+  service:
+    port: 2181
 
-service:
-  type: ClusterIP
-  annotations: {}
-  ports:
-    api: 9000
-    console: 9001
-    
-persistence:
-  enabled: false
-  existingClaim: ""
-  size: 10Gi
-  accessModes:
-    - ReadWriteOnce
-  storageClass: ""
+kafka:
+  image: bitnami/kafka:latest
+  replicaCount: 1
+  service:
+    port: 9092
+  env:
+    zookeeperConnect: "zookeeper:2181"
+    listeners: "PLAINTEXT://:9092"
+    advertisedListeners: "PLAINTEXT://kafka:9092"
 
-routes:
+minio:
+  image: minio/minio:latest
+  service:
+    apiPort: 9000
+    consolePort: 9001
+  route:
+    enabled: true
+    consoleHost: ""
+    apiHost: ""
+    tls:
+      termination: edge
+      insecurePolicy: Redirect
+  credsSecret: citizens-demo-minio
+  persistence:
+    enabled: false
+    size: 10Gi
+
+kafkaUI:
   enabled: true
-  tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Redirect
-    certificate: ""
-    key: ""
-    caCertificate: ""
-    destinationCACertificate: ""
-  console:
+  image: provectuslabs/kafka-ui:latest
+  service:
+    port: 8080
+  route:
+    enabled: true
     host: ""
-    annotations:      
-      app.openshift.io/route-url: "https://{{ .Release.Name }}-console-{{ .Release.Namespace }}.{{ .Values.routes.tls.termination | default \"apps\" }}.{{ .Values.global.clusterDomain | default \"{{ .Release.Service }}\" }}"
-  api:
-    host: ""
-    annotations: {}
+    tls:
+      termination: edge
+      insecurePolicy: Redirect
+  env:
+    bootstrapServers: "kafka:9092"
+    zookeeperConnect: "zookeeper:2181"
 
-# Easy knobs for tuning
-resources: {}
-nodeSelector: {}
-tolerations: []
-affinity: {}
+resources:
+  quarkusApp: {}
+  kafka: {}
+  zookeeper: {}
+  minio: {}
+  kafkaUI: {}
+
+persistence:
+  kafka: { enabled: false, size: 10Gi }
+  zookeeper: { enabled: false, size: 5Gi }
+  minio: { enabled: false, size: 10Gi }

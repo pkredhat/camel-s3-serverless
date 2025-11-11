@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "citizens.fullname" . }}
+  labels:
+    {{- include "citizens.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.quarkusApp.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/component: quarkus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/component: quarkus
+    spec:
+      containers:
+        - name: quarkus-app
+          image: "{{ .Values.quarkusApp.image.repository }}:{{ .Values.quarkusApp.image.tag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          env:
+            - name: CAMEL_COMPONENT_KAFKA_BROKERS
+              value: {{ .Values.quarkusApp.env.kafkaBootstrap | quote }}
+            - name: MINIO_ENDPOINT
+              value: {{ .Values.quarkusApp.env.minioEndpoint | quote }}
+            - name: AWS_S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.quarkusApp.env.awsAccessKeySecret }}
+                  key: bucket
+            - name: AWS_S3_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.quarkusApp.env.awsAccessKeySecret }}
+                  key: region
+            - name: AWS_S3_ACCESSKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.quarkusApp.env.awsAccessKeySecret }}
+                  key: accessKey
+            - name: AWS_S3_SECRETKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.quarkusApp.env.awsSecretKeySecret }}
+                  key: secretKey
+            - name: MINIO_ACCESSKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.quarkusApp.env.minioCredsSecret }}
+                  key: accessKey
+            - name: MINIO_SECRETKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.quarkusApp.env.minioCredsSecret }}
+                  key: secretKey
+            - name: MINIO_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.quarkusApp.env.minioCredsSecret }}
+                  key: bucket
+          ports:
+            - containerPort: {{ .Values.quarkusApp.service.port }}
+              name: http
+          {{- with .Values.resources.quarkusApp }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

@@ -1,0 +1,17 @@
+{{- if .Values.kafkaUI.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/component: kafka-ui
+spec:
+  selector:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/component: kafka-ui
+  ports:
+    - port: {{ .Values.kafkaUI.service.port }}
+      targetPort: http
+      name: http
+{{- end }}

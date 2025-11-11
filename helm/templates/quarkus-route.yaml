@@ -1,0 +1,25 @@
+{{- if .Values.quarkusApp.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "citizens.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/component: quarkus
+spec:
+  to:
+    kind: Service
+    name: {{ include "citizens.fullname" . }}
+  port:
+    targetPort: http
+  {{- if .Values.quarkusApp.route.host }}
+  host: {{ .Values.quarkusApp.route.host }}
+  {{- end }}
+  {{- with .Values.quarkusApp.route.tls.termination }}
+  tls:
+    termination: {{ . }}
+    {{- with $.Values.quarkusApp.route.tls.insecurePolicy }}
+    insecureEdgeTerminationPolicy: {{ . }}
+    {{- end }}
+  {{- end }}
+{{- end }}
