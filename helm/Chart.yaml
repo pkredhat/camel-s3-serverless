@@ -1,6 +1,6 @@
 apiVersion: v2
 name: minio
-description: Openshift Resource deployment for the workshop-quarkus-using_camel application
+description: OpenShift resource deployment for the citizens-demo-camel-s3-serverless application
 type: application
 version: 0.1.0
 appVersion: "latest"

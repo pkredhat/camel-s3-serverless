@@ -1,6 +1,6 @@
 schemaVersion: 2.2.2
 metadata:
-  name: workshop-quarkus-hello_quarkus
+  name: citizens-demo-camel-s3-serverless
   version: 1.0.0
   description: DevSpaces workspace for Quarkus app
 attributes:
@@ -41,7 +41,7 @@ commands:
       component: tools
       workingDir: ${PROJECT_SOURCE}
       commandLine: >
-        helm upgrade --install workshop-deployer ${PROJECT_SOURCE}/helm        
+        helm upgrade --install citizens-demo-camel-s3-serverless ${PROJECT_SOURCE}/helm        
       group:
         kind: run
 

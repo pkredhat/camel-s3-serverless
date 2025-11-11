@@ -5,37 +5,56 @@ import org.apache.camel.builder.RouteBuilder;
 
 @ApplicationScoped
 public class Routes extends RouteBuilder {
-
+    
     @Override
     public void configure() throws Exception {
 
-        System.out.println("🔌 Camel Routes starting up...");
+        System.out.println(" | Camel Routes starting up... | ");
 
         /*
         Kafka (JSON) -> Translate to XML -> Kafka
-        */        
+        */
         from("kafka:{{kafka.package.receiver}}?groupId=camel-transformer")
             .routeId("PackageReceiverToDeliverer")
-            .log("📦 Received package JSON: ${body}")
-            // Transform JSON → XML (attached is an XSL for rules formatting - we have this customized specifically)
+            .log("?? Received package JSON: ${body}")
+            // Transform JSON -> XML (attached is an XSL for rules formatting - we have this customized specifically)
             .to("xj:com/redhat/json2xml.xsl?transformDirection=JSON2XML")
-            .log("🚚 Transformed package to XML: ${body}")
+            .log("?? Transformed package to XML: ${body}")
             .to("kafka:{{kafka.package.deliverer}}")
-            .log("✅ Delivered package to 'package-deliverer': ${body}");
+            .log("? Delivered package to 'package-deliverer': ${body}");
 
         /*
-        File Drop (JSON) -> Translate to XML -> Push to Kafka
+        Minio File Drop (JSON) -> Translate to XML -> Push to Kafka
         */
         from("minio:{{minio.bucket}}"
             + "?accessKey={{minio.accessKey}}"
             + "&secretKey={{minio.secretKey}}"
             + "&endpoint={{minio.endpoint}}"
             + "&secure=true")
-        .routeId("MinioToKafka")
-        .log("📂 Picked up from MinIO bucket: ${header.CamelFileName}")
-        .to("xj:com/redhat/json2xml.xsl?transformDirection=JSON2XML")
-        .to("kafka:package-deliverer")
-        .log("✅ Delivered to Kafka: ${body}");            
+            .routeId("MinioToKafka")
+            .log("Picked up from MinIO bucket: ${header.CamelFileName}")
+            .to("xj:com/redhat/json2xml.xsl?transformDirection=JSON2XML")
+            .to("kafka:package-deliverer")
+            .log("Delivered to Kafka: ${body}");
+
+        /*
+        AWS File Drop (JSON) -> Translate to XML -> Push to Kafka
+        */
+        from("aws2-s3://{{aws.s3.bucket}}"
+            + "?accessKey={{aws.s3.accessKey}}"
+            + "&secretKey={{aws.s3.secretKey}}"
+            + "&region={{aws.s3.region}}"
+            + "&prefix={{aws.s3.prefix:}}"
+            + "&deleteAfterRead={{aws.s3.deleteAfterRead}}"
+            + "&autoCreateBucket=false"
+            + "&delay={{aws.s3.pollDelay}}"
+            + "&bridgeErrorHandler=true")
+            .routeId("S3ToKafka")
+            .log("?? Picked up from S3 bucket {{aws.s3.bucket}}: ${header.CamelAwsS3Key}")
+            .to("xj:com/redhat/json2xml.xsl?transformDirection=JSON2XML")
+            .to("kafka:package-deliverer")
+            .log("Delivered S3 payload to Kafka: ${body}");
+  
 
         /*
          REST -> JSON in -> XML out (Note: using DVB's XSLT)
@@ -47,9 +66,9 @@ public class Routes extends RouteBuilder {
                 .to("direct:json2xml");
         from("direct:json2xml")
             .routeId("JsonToXml")
-            .log("📥 Received JSON: ${body}")
+            .log("?? Received JSON: ${body}")
             // replace with your own XSLT or schema resource
             .to("xj:com/redhat/json2xml.xsl?transformDirection=JSON2XML")
-            .log("📤 Returning XML: ${body}");        
+            .log("?? Returning XML: ${body}");
     }
 }

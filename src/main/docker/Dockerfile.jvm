@@ -1,11 +1,7 @@
 ####
 # This Dockerfile is used in order to build a container that runs the Quarkus application in JVM mode
 #
-# Before building the container image run:
-#
-# ./mvnw package
-#
-# Then, build the image with:
+# Build the image with:
 #
 # docker build -f src/main/docker/Dockerfile.jvm -t quarkus/code-with-quarkus-jvm .
 #
@@ -78,16 +74,30 @@
 #   accessed directly. (example: "foo.example.com,bar.example.com")
 #
 ###
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+WORKDIR /workspace
+
+COPY mvnw ./
+COPY .mvn .mvn
+COPY pom.xml .
+COPY src src
+
+ENV MAVEN_CONFIG=""
+ENV QUARKUS_CONTAINER_IMAGE_BUILD=false
+ENV QUARKUS_KUBERNETES_DEPLOY=false
+ENV QUARKUS_OPENSHIFT_DEPLOY=false
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw && ./mvnw package -DskipTests
+
 FROM registry.access.redhat.com/ubi9/openjdk-21:1.21
 
 ENV LANGUAGE='en_US:en'
 
 
 # We make four distinct layers so if there are application changes the library layers can be re-used
-COPY --chown=185 target/quarkus-app/lib/ /deployments/lib/
-COPY --chown=185 target/quarkus-app/*.jar /deployments/
-COPY --chown=185 target/quarkus-app/app/ /deployments/app/
-COPY --chown=185 target/quarkus-app/quarkus/ /deployments/quarkus/
+COPY --from=build --chown=185 /workspace/target/quarkus-app/lib/ /deployments/lib/
+COPY --from=build --chown=185 /workspace/target/quarkus-app/*.jar /deployments/
+COPY --from=build --chown=185 /workspace/target/quarkus-app/app/ /deployments/app/
+COPY --from=build --chown=185 /workspace/target/quarkus-app/quarkus/ /deployments/quarkus/
 
 EXPOSE 8080
 USER 185

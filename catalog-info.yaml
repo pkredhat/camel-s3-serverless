@@ -1,8 +1,8 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: workshop-module3-java
-  title: Module 3 - Java
+  name: citizens-demo-camel-s3-serverless
+  title: Citizens Demo - Camel S3 Serverless
   description: |
     Event-Driven Microservices with Camel & Quarkus
   annotations:
@@ -14,4 +14,4 @@ spec:
   type: module
   lifecycle: production
   owner: group:default/cluster-admins
-  subcomponentOf: component:default/workshop-repository
+  subcomponentOf: component:default/citizens-demo-camel-s3-serverless
