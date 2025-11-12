@@ -26,6 +26,8 @@ spec:
               value: "yes"
             - name: KAFKA_ENABLE_KRAFT
               value: "yes"
+            - name: KAFKA_CFG_NODE_ID
+              value: "0"
             - name: KAFKA_CFG_PROCESS_ROLES
               value: "broker,controller"
             - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
