@@ -37,7 +37,7 @@ spec:
             - name: KAFKA_CFG_LISTENERS
               value: "PLAINTEXT://:{{ .Values.kafka.service.clientPort }},CONTROLLER://:{{ .Values.kafka.service.controllerPort }}"
             - name: KAFKA_CFG_ADVERTISED_LISTENERS
-              value: "PLAINTEXT://kafka:{{ .Values.kafka.service.clientPort }}"
+              value: "PLAINTEXT://kafka.{{ .Release.Namespace }}.svc:{{ .Values.kafka.service.clientPort }}"
             - name: KAFKA_CFG_INTER_BROKER_LISTENER_NAME
               value: "PLAINTEXT"
             - name: KAFKA_CFG_CONTROLLER_QUORUM_VOTERS

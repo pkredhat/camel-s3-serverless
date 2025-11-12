@@ -1,6 +1,7 @@
 package com.redhat;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 
 @ApplicationScoped
@@ -23,6 +24,8 @@ public class Routes extends RouteBuilder {
             .to("kafka:{{kafka.package.deliverer}}")
             .log("? Delivered package to 'package-deliverer': ${body}");
 
+
+
         /*
         Minio File Drop (JSON) -> Translate to XML -> Push to Kafka
         */
@@ -36,6 +39,9 @@ public class Routes extends RouteBuilder {
             .to("xj:com/redhat/json2xml.xsl?transformDirection=JSON2XML")
             .to("kafka:package-deliverer")
             .log("Delivered to Kafka: ${body}");
+
+
+
 
         /*
         AWS File Drop (JSON) -> Translate to XML -> Push to Kafka
@@ -56,6 +62,8 @@ public class Routes extends RouteBuilder {
             .log("Delivered S3 payload to Kafka: ${body}");
   
 
+
+
         /*
          REST -> JSON in -> XML out (Note: using DVB's XSLT)
          */
@@ -70,5 +78,35 @@ public class Routes extends RouteBuilder {
             // replace with your own XSLT or schema resource
             .to("xj:com/redhat/json2xml.xsl?transformDirection=JSON2XML")
             .log("?? Returning XML: ${body}");
+
+
+            
+        /*
+         REST -> JSON payload -> CloudEvent -> Knative Broker (Funqy trigger)
+         */
+        rest("/funqy")
+            .post("/event")
+                .consumes("application/json")
+                .produces("application/json")
+                .to("direct:funqyKnativeEvent");
+        from("direct:funqyKnativeEvent")
+            .routeId("FunqyKnativeBridge")
+            .log("?? Forwarding payload to Knative broker '{{knative.broker.url}}': ${body}")
+            .convertBodyTo(String.class)
+            .removeHeaders("ce-*")
+            .setHeader("ce-specversion", simple("{{knative.event.specVersion}}"))
+            .setHeader("ce-type", simple("{{knative.event.type}}"))
+            .setHeader("ce-source", simple("{{knative.event.source}}"))
+            .setHeader("ce-subject", simple("{{knative.event.subject}}"))
+            .setHeader("ce-time", simple("${date:now:yyyy-MM-dd'T'HH:mm:ssXXX}"))
+            .setHeader("ce-id", simple("${exchangeId}"))
+            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+            .toD("{{knative.broker.scheme}}://{{knative.broker.url}}"
+                + "?httpMethod=POST"
+                + "&bridgeEndpoint=true"
+                + "&throwExceptionOnFailure=true")
+            .log("?? Funqy CloudEvent sent to Knative broker at {{knative.broker.url}}")
+            .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+            .setBody(simple("{\"status\":\"funqy-event-sent\"}"));
     }
 }
