@@ -2,7 +2,7 @@ package com.redhat;
 
 import io.quarkus.funqy.Funq;
 import io.quarkus.funqy.knative.events.CloudEvent;
-import io.quarkus.funqy.knative.events.CloudEventMapping;
+import java.util.Objects;
 import org.jboss.logging.Logger;
 
 /**
@@ -13,12 +13,11 @@ public class FunqyKnativeTarget {
     private static final Logger LOGGER = Logger.getLogger(FunqyKnativeTarget.class);
 
     @Funq("funqyKnativeTarget")
-    @CloudEventMapping(trigger = "funqyKnativeTarget", ceType = "com.redhat.citizens.funqy.reversal")
     public void logEvent(CloudEvent<String> event) {
         LOGGER.infov("Funqy event received: id={0}, type={1}, subject={2}, payload={3}",
-                event.id().orElse("<no-id>"),
-                event.type().orElse("<no-type>"),
-                event.subject().orElse("<no-subject>"),
+                Objects.toString(event.id(), "<no-id>"),
+                Objects.toString(event.type(), "<no-type>"),
+                Objects.toString(event.subject(), "<no-subject>"),
                 event.data());
     }
 }
