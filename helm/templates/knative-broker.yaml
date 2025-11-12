@@ -1,0 +1,19 @@
+{{- $baseName := .Release.Name -}}
+{{- $knative := .Values.knative | default dict -}}
+{{- $brokerVals := $knative.broker | default dict -}}
+{{- $brokerName := default (printf "%s-broker" $baseName) $brokerVals.name -}}
+---
+apiVersion: eventing.knative.dev/v1
+kind: Broker
+metadata:
+  name: {{ $brokerName }}
+  labels:
+    {{- include "citizens.labels" . | nindent 4 }}
+  {{- with $brokerVals.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- with $brokerVals.spec }}
+spec:
+  {{- toYaml . | nindent 2 }}
+{{- end }}

@@ -1,0 +1,44 @@
+{{- $baseName := .Release.Name -}}
+{{- $knative := .Values.knative | default dict -}}
+{{- $brokerVals := $knative.broker | default dict -}}
+{{- $triggerVals := $knative.trigger | default dict -}}
+{{- $serviceVals := $knative.service | default dict -}}
+{{- $baseBrokerName := default (printf "%s-broker" $baseName) $brokerVals.name -}}
+{{- $brokerName := default $baseBrokerName $triggerVals.brokerName -}}
+{{- $triggerName := default (printf "%s-trigger" $baseName) $triggerVals.name -}}
+{{- $funqyServiceName := default (printf "%s-funqy" $baseName) $serviceVals.name -}}
+{{- $subscriber := $triggerVals.subscriber | default dict -}}
+{{- $subscriberRef := $subscriber.ref | default dict -}}
+{{- $refApiVersion := default "serving.knative.dev/v1" $subscriberRef.apiVersion -}}
+{{- $refKind := default "Service" $subscriberRef.kind -}}
+{{- $refName := default $funqyServiceName $subscriberRef.name -}}
+{{- $refNamespace := $subscriberRef.namespace | default "" -}}
+{{- $subscriberUri := $subscriber.uri | default "" -}}
+{{- $filterAttrs := $triggerVals.filterAttributes | default dict -}}
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: {{ $triggerName }}
+  labels:
+    {{- include "citizens.labels" . | nindent 4 }}
+spec:
+  broker: {{ $brokerName }}
+  {{- if $filterAttrs }}
+  filter:
+    attributes:
+      {{- range $key, $val := $filterAttrs }}
+      {{ $key }}: {{ $val | quote }}
+      {{- end }}
+  {{- end }}
+  subscriber:
+    ref:
+      apiVersion: {{ $refApiVersion | quote }}
+      kind: {{ $refKind | quote }}
+      name: {{ $refName }}
+      {{- if $refNamespace }}
+      namespace: {{ $refNamespace }}
+      {{- end }}
+    {{- if $subscriberUri }}
+    uri: {{ $subscriberUri | quote }}
+    {{- end }}

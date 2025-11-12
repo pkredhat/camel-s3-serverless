@@ -58,7 +58,7 @@ public class Routes extends RouteBuilder {
             .routeId("S3ToKafka")
             .startupOrder(20)
             .log("?? Picked up from S3 bucket {{aws.s3.bucket}}: ${header.CamelAwsS3Key}")
-            .wireTap("direct:funqyKnativeEvent")
+            .wireTap("seda:funqyKnativeEvent")
             .to("xj:com/redhat/json2xml.xsl?transformDirection=JSON2XML")
             .to("kafka:package-deliverer")
             .log("Delivered S3 payload to Kafka: ${body}");
@@ -90,8 +90,8 @@ public class Routes extends RouteBuilder {
             .post("/event")
                 .consumes("application/json")
                 .produces("application/json")
-                .to("direct:funqyKnativeEvent");
-        from("direct:funqyKnativeEvent")
+                .to("seda:funqyKnativeEvent");
+        from("seda:funqyKnativeEvent")
             .routeId("FunqyKnativeBridge")
             .log("?? Forwarding payload to Knative broker '{{knative.broker.url}}': ${body}")
             .convertBodyTo(String.class)

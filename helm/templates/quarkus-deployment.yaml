@@ -25,6 +25,8 @@ spec:
               value: {{ .Values.quarkusApp.env.kafkaBootstrap | quote }}
             - name: MINIO_ENDPOINT
               value: {{ .Values.quarkusApp.env.minioEndpoint | quote }}
+            - name: KNATIVE_BROKER_URL
+              value: {{ .Values.quarkusApp.env.knativeBrokerUrl | quote }}
             {{- if .Values.quarkusApp.env.awsAccessKeySecret }}
             - name: AWS_S3_BUCKET
               valueFrom:

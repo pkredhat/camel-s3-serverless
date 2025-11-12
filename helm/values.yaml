@@ -23,6 +23,7 @@ quarkusApp:
     awsAccessKeySecret: citizens-demo-aws
     awsSecretKeySecret: citizens-demo-aws
     minioCredsSecret: citizens-demo-minio
+    knativeBrokerUrl: "broker-ingress.knative-eventing.svc.cluster.local/citizens-demo/citizens-demo-broker"
 
 kafka:
   image: docker.io/bitnamilegacy/kafka:3.7.0-debian-12-r2
@@ -64,6 +65,37 @@ kafkaUI:
   env:
     bootstrapServers: "kafka:9092"
     zookeeperConnect: "zookeeper:2181"
+
+knative:
+  broker:
+    name: ""
+    annotations: {}
+    spec: {}
+  trigger:
+    name: ""
+    brokerName: ""
+    filterAttributes:
+      type: "com.redhat.citizens.funqy.reversal"
+      source: "citizens-demo.camel.funqy"
+    subscriber:
+      ref:
+        apiVersion: ""
+        kind: ""
+        name: ""
+        namespace: ""
+      uri: ""
+  service:
+    name: ""
+    image:
+      repository: ""
+      tag: ""
+      pullPolicy: ""
+    containerPort: 8080
+    env: {}
+    annotations: {}
+    templateAnnotations: {}
+    labels: {}
+    resources: {}
 
 resources:
   quarkusApp: {}
