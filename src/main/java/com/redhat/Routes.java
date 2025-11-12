@@ -56,7 +56,9 @@ public class Routes extends RouteBuilder {
             + "&delay={{aws.s3.pollDelay}}"
             + "&bridgeErrorHandler=true")
             .routeId("S3ToKafka")
+            .startupOrder(20)
             .log("?? Picked up from S3 bucket {{aws.s3.bucket}}: ${header.CamelAwsS3Key}")
+            .wireTap("direct:funqyKnativeEvent")
             .to("xj:com/redhat/json2xml.xsl?transformDirection=JSON2XML")
             .to("kafka:package-deliverer")
             .log("Delivered S3 payload to Kafka: ${body}");
