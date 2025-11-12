@@ -10,6 +10,9 @@ spec:
     app.kubernetes.io/name: {{ .Chart.Name }}
     app.kubernetes.io/component: kafka
   ports:
-    - port: {{ .Values.kafka.service.port }}
+    - port: {{ .Values.kafka.service.clientPort }}
       targetPort: kafka
       name: kafka
+    - port: {{ .Values.kafka.service.controllerPort }}
+      targetPort: controller
+      name: controller

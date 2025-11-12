@@ -25,6 +25,7 @@ spec:
               value: {{ .Values.quarkusApp.env.kafkaBootstrap | quote }}
             - name: MINIO_ENDPOINT
               value: {{ .Values.quarkusApp.env.minioEndpoint | quote }}
+            {{- if .Values.quarkusApp.env.awsAccessKeySecret }}
             - name: AWS_S3_BUCKET
               valueFrom:
                 secretKeyRef:
@@ -43,8 +44,19 @@ spec:
             - name: AWS_S3_SECRETKEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.quarkusApp.env.awsSecretKeySecret }}
+                  name: {{ .Values.quarkusApp.env.awsAccessKeySecret }}
                   key: secretKey
+            {{- else }}
+            - name: AWS_S3_BUCKET
+              value: ""
+            - name: AWS_S3_REGION
+              value: ""
+            - name: AWS_S3_ACCESSKEY
+              value: ""
+            - name: AWS_S3_SECRETKEY
+              value: ""
+            {{- end }}
+            {{- if .Values.quarkusApp.env.minioCredsSecret }}
             - name: MINIO_ACCESSKEY
               valueFrom:
                 secretKeyRef:
@@ -60,6 +72,14 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.quarkusApp.env.minioCredsSecret }}
                   key: bucket
+            {{- else }}
+            - name: MINIO_ACCESSKEY
+              value: ""
+            - name: MINIO_SECRETKEY
+              value: ""
+            - name: MINIO_BUCKET
+              value: ""
+            {{- end }}
           ports:
             - containerPort: {{ .Values.quarkusApp.service.port }}
               name: http

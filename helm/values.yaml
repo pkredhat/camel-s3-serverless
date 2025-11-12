@@ -2,11 +2,11 @@ imagePullPolicy: IfNotPresent
 
 global:
   namespace: ""
-  clusterDomain: "apps"  # override if using custom domain
+  clusterDomain: "apps"
 
 quarkusApp:
   image:
-    repository: image-registry.openshift-image-registry.svc:5000/camel-workshop/citizens-demo-camel-s3-serverless
+    repository: image-registry.openshift-image-registry.svc:5000/citizens-demo/citizens-demo-camel-s3-serverless
     tag: latest
   replicaCount: 1
   service:
@@ -20,27 +20,18 @@ quarkusApp:
   env:
     kafkaBootstrap: "kafka:9092"
     minioEndpoint: "http://minio:9000"
-    awsBucket: ""
-    awsRegion: "us-east-1"
     awsAccessKeySecret: citizens-demo-aws
     awsSecretKeySecret: citizens-demo-aws
     minioCredsSecret: citizens-demo-minio
 
-zookeeper:
-  image: docker.io/bitnami/zookeeper:3.9.0
-  replicaCount: 1
-  service:
-    port: 2181
-
 kafka:
-  image: docker.io/bitnami/kafka:3.7.0
+  image: docker.io/bitnami/kafka:3.7.0-debian-12-r11
   replicaCount: 1
   service:
-    port: 9092
+    clientPort: 9092
+    controllerPort: 9093
   env:
-    zookeeperConnect: "zookeeper:2181"
-    listeners: "PLAINTEXT://:9092"
-    advertisedListeners: "PLAINTEXT://kafka:9092"
+    clusterId: "4L6g3nShT-eMCtK--X86sw"
 
 minio:
   image: minio/minio:latest
@@ -77,11 +68,9 @@ kafkaUI:
 resources:
   quarkusApp: {}
   kafka: {}
-  zookeeper: {}
   minio: {}
   kafkaUI: {}
 
 persistence:
   kafka: { enabled: false, size: 10Gi }
-  zookeeper: { enabled: false, size: 5Gi }
   minio: { enabled: false, size: 10Gi }

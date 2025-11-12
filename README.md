@@ -10,7 +10,7 @@ Technology Stack:
 
 ## ?? Local Kafka, MinIO & Quarkus Stack
 
-Spin up the full citizens-demo-camel-s3-serverless topology locally (Kafka + ZooKeeper + MinIO + the Quarkus service) to iterate without relying on remote clusters.
+Spin up the full citizens-demo-camel-s3-serverless topology locally (Kafka running in KRaft mode + MinIO + the Quarkus service) to iterate without relying on remote clusters.
 
 1. Start everything with `docker compose -f docker-compose.kafka-minio.yml up --build -d` (use `docker-compose` if you are still on Compose v1). The multi-stage image now runs `./mvnw package -DskipTests` inside the build, so you only need a local `./mvnw package` when you want to fail fast before composing.
 2. Kafka listens on `localhost:9092`, ZooKeeper on `localhost:2181`, MinIO on `http://localhost:9000` (console: `http://localhost:9001`, creds `admin/admin123`). The stack uses `minio/minio:latest` so you always get the latest stable server build.
